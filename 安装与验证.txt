@@ -1,0 +1,48 @@
+柏宝绘漫画分镜轻改 v1
+适配本次下载的 ST-BaiBai-Image main，manifest 版本 0.3.2。
+
+安装顺序
+1. 备份现有 NAI 规范、NAI 思维链和插件文件。
+2. 源码项目根目录运行 git apply --ignore-space-change baibai-comic-light.patch（先把补丁复制到项目根目录）；或用本目录 prompt.ts 替换 src/autoTag/prompt.ts（两种方法选一种）。其他版本优先检查补丁差异，避免整文件覆盖掉新版改动。
+3. 在项目根目录安装依赖并构建：pnpm install，然后 pnpm build。将构建后的 dist/index.js 放回酒馆扩展对应目录，刷新酒馆。仅替换 src 文件不会影响已运行的 dist。
+4. 柏宝绘「设置 → 自定义提示词」中：用“柏宝绘-轻改分镜-NAI规范.txt”全文替换 NAI 规范；用“柏宝绘-轻改分镜-思维链.txt”全文替换 NAI 思维链。
+5. NAI 渠道选择 V5 Full，开启“生成自然语言”，画幅锁选竖屏；竖图尺寸先沿用 832×1216。图片数先设最少 1、最多 1，便于单页验证。
+6. 把“漫画模式-负面词.txt”填入实际生效的负面词字段。若当前画师配方绑定了负面词，优先改该配方；否则改渠道负面词。空字段会回落默认，不能靠清空解决冲突。
+7. 暂时关闭自动生成图片，先在包含完整事件的楼层重新“生成 tag”。检查后手动出一张图。旧 tag 必须重新生成，直接重绘旧图不会换提示词。
+
+提示词应满足
+- 一张 images 项涵盖 2～3 个镜头，不把格数当成图片张数。
+- tag 出现 comic, 2 panels 或 3 panels；nl 非空英文，包含各格的位置、景别、动作与环境。
+- characters 为空；changes 仍完成正式角色建档。新建档带 hair、eyes 和非空英文 nl。
+- 没有 <image>、@panel 或其他页协议标记。
+- position 指向整件事已经发生完的正文段尾，不提前透露后文。
+
+本次核实的问题
+src/autoTag/protocol.ts：tag/nl 内换行被压成空格，不解析自定义画格段。
+src/autoTag/charAnchors.ts：@英文标记也会匹配角色占位符；未知名字会被处理，并非漫画协议。
+src/autoTag/prompt.ts：自定义规范之后仍追加固定合同，强制单一瞬间和原生 characters 块。本补丁仅在规范包含 [BAIBAI_COMIC_LIGHT_V1] 时替换该合同。
+src/backends/nai.ts：页面 tag 与英文 nl 拼接进 base_caption；characters 单独成为 char_captions，当前没有按画格绑定角色的接口。
+src/generate.ts：NAI 不接收图片项的动态 negative；实际使用渠道/画师配方负面词。
+默认 NAI V5 Full 负面词包含 multiple views、halftone、screentone；漫画版去除这些冲突项。默认 no text 对本版无对白插图可保留。
+
+为什么本版 characters 为空
+这是页面 caption 模式的明确选择：同一人物需要在多个格中出现，现有原生角色块没有逐格作用域。人物在 tag/nl 中描述，角色库仍通过 changes 独立维护。前一轮“空数组会破坏角色库”的判断不准确。
+本版不宣称 <image>/@panel 是 NovelAI 官方协议，也不宣称自然语言可保证精确格数或跨格外貌一致。
+
+验证记录
+已运行源码功能检查：未启用模式的完整消息与原版相同；漫画合同替换成功；自然语言关闭时报明确错误；规范示例可被原版解析器接受；tag+nl 完整进入 NAI base_caption，char_captions 为空，渠道负面词正常进入请求。
+验证使用 Node 的 TypeScript 转换与依赖替身；未执行完整 pnpm build 或项目全部测试，未连接用户 NAI 账户实际出图。文件是可应用的源码与配置方案，不是已编译安装包。
+
+验收重点
+先观察画格边界与数量、各格是否有不同事件信息、环境是否保留、人物衣着是否连续。若三格不稳，先将规范默认改为两格；若两格仍持续失败，应转向逐格生图再拼页，继续堆叠页协议不能保证解决。
+
+回退
+恢复原 prompt.ts 并重新构建；恢复原 NAI 两份提示词和原负面词。若只想临时关闭漫画合同，移除规范首行模式标记，同时恢复原版 NAI 规范与思维链。
+
+源码来源
+https://github.com/baibai-git/ST-BaiBai-Image
+https://github.com/baibai-git/ST-BaiBai-Image/blob/main/src/autoTag/prompt.ts
+https://github.com/baibai-git/ST-BaiBai-Image/blob/main/src/autoTag/protocol.ts
+https://github.com/baibai-git/ST-BaiBai-Image/blob/main/src/autoTag/charAnchors.ts
+https://github.com/baibai-git/ST-BaiBai-Image/blob/main/src/backends/nai.ts
+

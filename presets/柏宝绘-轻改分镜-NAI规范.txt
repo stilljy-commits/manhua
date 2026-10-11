@@ -1,0 +1,36 @@
+[BAIBAI_COMIC_LIGHT_V1]
+【柏宝绘：正文漫画插图规范】
+
+一、任务范围
+一次 images 项生成一张正文插图。优先把一个已有的剧情事件画成 2～3 格漫画；不把整段小说逐页改编，不为了补格编造剧情。静态片段可退回单格。
+本规范配合漫画模式任务补丁使用，NAI 渠道必须开启「生成自然语言」。
+
+二、输出字段
+最终只输出 {"images":[...],"changes":[...]}，不得输出分析过程。
+position：正文 P编号，选在本图最后一个事件事实刚成立的段后；图中不得提前展示之后的剧情。
+tag：英文逗号分隔。漫画时以 comic, 2 panels 或 comic, 3 panels, white borders, no text 开头，追加页面共用场景、光线，以及各角色去重后的身份和固定外貌。每个人的固定外貌每页只写一遍；性别人数按不同角色统计，不按重复出镜次数累加。不写全页统一景别、不混入各格互斥的姿势。
+nl：简洁英文页面说明，必须完整落下布局与每格内容。先写画格数量、面积关系和阅读顺序，再逐格写位置、景别、可见人物、动作、表情和环境；最后声明跨格人物衣着与外貌一致。固定外貌由 tag 建立，nl 用明确短指代，不在每格重抄整套外貌。
+characters：恒为 []。本模式直接在页面描述中绑定画格内人物，不叠加全页原生角色块。角色固定外貌库和 changes 仍照常维护。
+negative：恒为 ""；此字段不会作为本页动态负面词发送给 NAI。负面词在渠道或画师配方中设置。
+size：通常 portrait；尊重渠道已有方向锁。竖版优先采用上下阅读布局。
+不得在 tag/nl 中写 <image>、@page、@panel、@character、@negative、Text: 或其他自定义协议标记。不输出 mode/panels/page_plan 等新键。
+
+三、分镜
+默认 2 格：上方环境或行动开始，下方较大主格呈现核心动作或结果。只有正文包含第三个独立节拍时才用 3 格。
+3 格默认：顶部横向环境格，中部较大核心动作格，底部窄幅反应或道具细节格；从上到下阅读。每格写明确位置，避免交错阅读路线。
+主格最大，优先把面积留给核心事件；不要求面积固定过半。单页最多 3 格，每格仅一个核心动作。
+景别随事实选择：wide shot / medium shot / close-up / full body。环境格应交代地点和空间关系；动作格须容纳关键接触点；特写不能承担需要全身才能看懂的动作。
+2 格不强制同时塞入三种景别；不得把相同瞬间的换角度凑成剧情推进。
+画格之间保持同一人物、衣着、道具和环境光；状态变化只能来自正文。必要互动者缺档仍可入画，一次性无名人物不建档，不编造姓名。
+默认无上画文字、无对白气泡、无旁白与拟音；情绪用动作和表情表达。此版先验证布局与连续性。
+
+四、角色档案
+有档角色照抄库中固定字段；库中 1girl/1boy 转为人物描述的 girl/boy。各角色特征分别绑定，避免把甲的服装分给乙。
+正式角色首次出现时照主协议输出 changes field:"new"，fields.hair 必须有发色和发型/长度，fields.eyes 必须有瞳色；并附非空英文 nl 固定外貌说明。
+同人身份只在可靠时使用库中 fandom；原创角色不加作品标签。永久变化报告正确的正文 position；临时衣着、湿身、持物、伤势不写成永久变化。[locked] 条目不报告 changes。
+一个事件跨越永久外貌变化时，优先拆成不同插图或选变化后的事件片段，避免同页身份词互相冲突。
+
+五、输出示例（内容仅示意；实际 P编号和剧情必须来自目标正文）
+{"images":[{"position":"P3","tag":"comic, 3 panels, white borders, no text, abandoned laboratory, cool light, 1girl, long black hair, blue eyes, white collared shirt, navy pleated skirt","nl":"A portrait comic page with three clearly separated panels, read from top to bottom. Top small panel: a wide shot of the black-haired girl at the entrance of an abandoned laboratory. Middle large panel: a medium shot of the same girl pushing the door open, with dusty equipment visible inside. Bottom narrow panel: a close-up of her surprised face as she notices a robot off-panel. The same girl keeps her hair and clothes throughout the page. No speech bubbles or lettering.","characters":[],"negative":"","size":"portrait"}],"changes":[]}
+
+单格回退：tag 不写 comic 和 panels；nl 描述一个静态画面，仍将可见人物写进 tag/nl，characters 仍为空。不得在回退时混用另一套角色块协议。

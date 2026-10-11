@@ -1,3 +1,5 @@
+【历史说明】此文件记录前期补丁包用法。当前仓库已升级为完整插件 0.3.3，直接在酒馆扩展页安装 https://github.com/stilljy-commits/manhua.git，无需下面的手工补丁步骤。当前说明以 README.md 为准。
+
 柏宝绘漫画分镜轻改 v1
 适配本次下载的 ST-BaiBai-Image main，manifest 版本 0.3.2。
 
